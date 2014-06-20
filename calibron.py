@@ -24,30 +24,30 @@ assert(possible_dimensions([(32, 11), (32, 10), (28, 14),
                             (21, 18), (21, 14), (21, 14),
                             (17, 14), (14,  4), (10,  7) ]) == [(56, 56), (64, 49), (98, 32), (112, 28)])
 
-def available_x_space(x,y,board):
+def x_capacity(x,y,board):
   for i, element in enumerate(board[y][x:]):
     if element is not None: return i
   return i+1
 
-assert(available_x_space(0, 0, [[None,'x',None],[None,None,None],[None,None,None]]) == 1)
-assert(available_x_space(0, 0, [[None,None,None],[None,None,None],[None,None,None]]) == 3)
-assert(available_x_space(0, 0, [[None,None,None],['x',None,None],[None,None,None]]) == 3)
-assert(available_x_space(0, 2, [[None,None,None],[None,None,None],[None,None,'x']]) == 2)
-assert(available_x_space(2, 1, [['x','x','x'],
-                                ['x','x',None],
-                                [None,'x',None]]) == 1)
+assert(x_capacity(0, 0, [[None,'x',None],[None,None,None],[None,None,None]]) == 1)
+assert(x_capacity(0, 0, [[None,None,None],[None,None,None],[None,None,None]]) == 3)
+assert(x_capacity(0, 0, [[None,None,None],['x',None,None],[None,None,None]]) == 3)
+assert(x_capacity(0, 2, [[None,None,None],[None,None,None],[None,None,'x']]) == 2)
+assert(x_capacity(2, 1, [['x','x','x'],
+                         ['x','x',None],
+                         [None,'x',None]]) == 1)
 
-def available_y_space(x,y,board):
-  return available_x_space(y,x,zip(*board))
+def y_capacity(x,y,board):
+  return x_capacity(y,x,zip(*board))
 
-assert(available_y_space(0, 0, [[None,None,None],[None,None,None],[None,None,None]]) == 3)
-assert(available_y_space(0, 0, [[None,'x',None],[None,None,None],[None,None,None]]) == 3)
-assert(available_y_space(0, 0, [[None,None,None],['x',None,None],[None,None,None]]) == 1)
-assert(available_y_space(2, 0, [['x','x',None],['x','x',None],[None,None,None]]) == 3)
-assert(available_y_space(1, 0, [[None,None,None],['x','x',None],[None,None,None]]) == 1)
-assert(available_y_space(2, 1, [['x','x','x'],
-                                ['x','x',None],
-                                [None,'x',None]]) == 2)
+assert(y_capacity(0, 0, [[None,None,None],[None,None,None],[None,None,None]]) == 3)
+assert(y_capacity(0, 0, [[None,'x',None],[None,None,None],[None,None,None]]) == 3)
+assert(y_capacity(0, 0, [[None,None,None],['x',None,None],[None,None,None]]) == 1)
+assert(y_capacity(2, 0, [['x','x',None],['x','x',None],[None,None,None]]) == 3)
+assert(y_capacity(1, 0, [[None,None,None],['x','x',None],[None,None,None]]) == 1)
+assert(y_capacity(2, 1, [['x','x','x'],
+                         ['x','x',None],
+                         [None,'x',None]]) == 2)
 
 def bottomleft_space(board):
   for j, row in enumerate(board):
@@ -90,15 +90,15 @@ def solve_puzzle(tiles, board):
     # figure out where we ought to place the tile (bottom left space)
     # and how much room we have to the right and above
     x, y = bottomleft_space(board)
-    x_space = available_x_space(x, y, board)
-    y_space = available_y_space(x, y, board)
+    max_width = x_capacity(x, y, board)
+    max_length = y_capacity(x, y, board)
 
     # for each remaining tile
     for i, tile in enumerate(tiles):
       remaining_tiles = tiles[:i] + tiles[i+1:]
       # for both of its rotations
       for width, length in [tile, reversed(tile)]:
-        if width <= x_space and length <= y_space:
+        if width <= max_width and length <= max_length:
           # place the tile and try to solve the puzzle from the resulting state
           new_board = place(length, width, x, y, board)
           result = solve_puzzle(remaining_tiles, new_board)
