@@ -22,10 +22,18 @@ SLIDER_2 = [
 
 def open_at(pin, slider):
     """return whether the slider has a free space at the pin position"""
-    x, y = pin  # pins are represented as x,y pairs -- y can change, x is fixed.
-    coords, xoffset = slider # sliders are represented as coords (where it's open/closed) and xoffset (how far it's moved left/right)
+    x, y = pin  # a pin is represented as an (x,y) pair -- y can change, x is fixed.
+    coords, xoffset = slider # a slider is represented as coords (where it's open/closed) and xoffset (how far it's moved left/right)
     xx = x + xoffset
     return xx < 0 or xx >= len(coords[y]) or coords[y][xx] == 0
+
+def all_open(pins, sliders):
+    """return whether all sliders have free spaces at all pin positions"""
+    for pin in pins:
+        for slider in sliders:
+            if not open_at(pin, slider):
+                return False
+    return True
 
 def possible_moves(state):
     """return all states reachable by moving a pin or a slider one space"""
@@ -38,8 +46,8 @@ def possible_moves(state):
         x, y = pin
         for dy, direction in [(1, 'down'), (-1, 'up')]:
             new_pin = (x, y+dy)
-            if all(map(lambda s: open_at(new_pin, s), sliders)):
-                move = 'move pin {0} {1}'.format(i, direction)
+            move = 'move pin {0} {1}'.format(i, direction)
+            if all_open([new_pin], sliders):
                 new_state = deepcopy(state)
                 new_state['pins'][i] = new_pin
                 result.append((move, new_state))
@@ -48,8 +56,8 @@ def possible_moves(state):
         coords, offset = slider
         for dx, direction in [(1, 'left'), (-1, 'right')]:
             new_slider = (coords, offset+dx)
-            if all(map(lambda p: open_at(p, new_slider), pins)):
-                move = 'move slider {0} {1}'.format(i, direction)
+            move = 'move slider {0} {1}'.format(i, direction)
+            if all_open(pins, [new_slider]):
                 new_state = deepcopy(state)
                 new_state['sliders'][i] = new_slider
                 result.append((move, new_state))
@@ -139,17 +147,12 @@ def breadth_first_search(start_state):
         i += 1
         if i % 250 == 0: print 'iterated {0} times, shortest path is {1}, frontier has {2} states'.format(i, len(path), len(frontier))
 
-        if reached_goal(state):
-            # if we've reached the goal, return the full path!
+        if reached_goal(state): # if we've reached the goal, return the full path!
             return path
-        elif str(state) in visited:
-            # ignore already visited states
+        elif str(state) in visited: # ignore already visited states
             continue
-        else:
-            # mark this state as visited
+        else: # mark this state as visited and queue up its successors
             visited.add(str(state))
-            # if this new state isn't the goal, find all states reachable from it, and add them
-            # as new paths to the frontier.
             for move, new_state in possible_moves(state):
                 new_path = deepcopy(path)
                 new_path.append((move, new_state))
