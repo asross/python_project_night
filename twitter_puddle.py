@@ -14,9 +14,7 @@ def twitter_puddle1(land):
     volume = 0
 
     for x in range(1, len(land)-1):
-        left_wall = max(land[:x])
-        right_wall = max(land[x+1:])
-        lowest_wall = min(left_wall, right_wall)
+        lowest_wall = min(max(land[:x]), max(land[x+1:]))
         if lowest_wall > land[x]:
             volume += lowest_wall - land[x]
 
